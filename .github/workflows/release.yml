@@ -8,10 +8,6 @@ on:
 permissions:
   contents: write
 
-env:
-  # 设置为 false 可以暂时禁用 Linux 构建
-  ENABLE_LINUX_BUILD: true
-
 jobs:
   build:
     name: Build
@@ -40,7 +36,6 @@ jobs:
             goarch: amd64
             binary_suffix: ""
             asset_name: clipboard-monitor-linux-amd64
-            enabled: ${{ env.ENABLE_LINUX_BUILD == 'true' }}
 
     steps:
     - name: Checkout code

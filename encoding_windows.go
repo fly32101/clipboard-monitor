@@ -21,7 +21,14 @@ func SetWindowsConsoleUTF8() {
 	procSetConsoleOutputCP.Call(uintptr(65001))
 }
 
+// SetWindowsAppUTF8 设置 Windows 应用程序为 UTF-8 编码
+func SetWindowsAppUTF8() {
+	// 设置当前线程的代码页为 UTF-8
+	kernel32.NewProc("SetThreadLocale").Call(uintptr(0x0804)) // 中文简体
+}
+
 // initPlatformSpecific 平台特定初始化
 func initPlatformSpecific() {
 	SetWindowsConsoleUTF8()
+	SetWindowsAppUTF8()
 }

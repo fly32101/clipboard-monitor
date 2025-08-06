@@ -5,9 +5,12 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build and Release
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -61,7 +64,7 @@ jobs:
         echo "Windows dependencies check"
 
     - name: Cache Go modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -90,18 +93,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Download all artifacts
       uses: actions/download-artifact@v4
+      with:
+        path: artifacts
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         body: |
           ## 剪贴板监听器 ${{ github.ref_name }}
@@ -138,47 +137,9 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
-          clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
-          clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
-          clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
+          artifacts/clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
+          artifacts/clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
+          artifacts/clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
+          artifacts/clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
 
-    - name: Upload Windows Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
-        asset_name: clipboard-monitor-windows-amd64.exe
-        asset_content_type: application/octet-stream
 
-    - name: Upload macOS Intel Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
-        asset_name: clipboard-monitor-macos-amd64
-        asset_content_type: application/octet-stream
-
-    - name: Upload macOS ARM Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
-        asset_name: clipboard-monitor-macos-arm64
-        asset_content_type: application/octet-stream
-
-    - name: Upload Linux Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
-        asset_name: clipboard-monitor-linux-amd64
-        asset_content_type: application/octet-stream

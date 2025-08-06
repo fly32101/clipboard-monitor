@@ -130,6 +130,134 @@
             background: #f6ffed;
         }
 
+        .selected-item {
+            border-left: 3px solid var(--primary-color);
+            background: var(--hover-bg);
+            box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+        }
+
+        .keyboard-hints {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .keyboard-hints .hint-group {
+            margin-bottom: 4px;
+        }
+
+        .keyboard-hints .hint-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .kbd {
+            display: inline-block;
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            color: #555;
+            background-color: #fcfcfc;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.2), 0 0 0 2px #fff inset;
+            margin: 0 2px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .close {
+            color: var(--text-muted);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .hotkey-display {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--text-primary);
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+        }
+
+        .hotkey-capture {
+            background: #e6f7ff;
+            border-color: var(--primary-color);
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -192,6 +320,62 @@
             border-color: #ff7875;
         }
 
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            min-width: auto;
+            margin-left: 4px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .window-controls .btn {
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .window-controls .btn:hover {
+            opacity: 1;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 120px;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .context-menu-item.danger {
+            color: var(--danger-color);
+        }
+
+        .context-menu-item.danger:hover {
+            background: #fff2f0;
+        }
+
         .history-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -235,8 +419,20 @@
 <body>
 <div class="container">
     <header class="header">
-        <h1 class="title">剪贴板监控</h1>
-        <div class="subtitle">实时监控剪贴板变化</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 class="title">剪贴板监控</h1>
+                <div class="subtitle">实时监控剪贴板变化</div>
+            </div>
+            <div class="window-controls">
+                <button class="btn btn-small" onclick="minimizeToTray()" title="最小化到托盘">
+                    ➖
+                </button>
+                <button class="btn btn-small" onclick="hideWindow()" title="隐藏窗口">
+                    ✖️
+                </button>
+            </div>
+        </div>
     </header>
 
     <main class="main-content">
@@ -244,12 +440,21 @@
 
         <div class="section-title">
             <span>剪贴板历史记录</span>
-            <span class="subtitle-small">(最新优先)</span>
+            <span class="subtitle-small">(最新优先，自动去重)</span>
         </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.875rem;">
-            双击条目复制到剪贴板
-        </p>
+        <div class="keyboard-hints">
+            <div class="hint-group">
+                <span class="kbd">↑</span><span class="kbd">↓</span> 选择 |
+                <span class="kbd">Enter</span> 复制 |
+                <span class="kbd">Ctrl+Enter</span> 直接粘贴 |
+                <span class="kbd">Delete</span> 删除 |
+                <span class="kbd">1-9</span> 快速选择
+            </div>
+            <div class="hint-group">
+                双击条目复制到剪贴板，Ctrl+Enter直接粘贴到当前程序
+            </div>
+        </div>
 
         <div class="history-container" id="historyContainer">
             <div class="empty-state">
@@ -267,6 +472,12 @@
             <button class="btn" onclick="refreshHistory()">
                 刷新
             </button>
+            <button class="btn" onclick="toggleWindowVisibility()">
+                切换显示
+            </button>
+            <button class="btn" onclick="showHotkeyConfig()">
+                快捷键设置
+            </button>
             <button class="btn" onclick="showAbout()">
                 关于
             </button>
@@ -274,10 +485,70 @@
     </footer>
 </div>
 
+<!-- 快捷键配置模态框 -->
+<div id="hotkeyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">全局快捷键设置</h2>
+            <span class="close" onclick="closeHotkeyModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">显示/隐藏程序快捷键</label>
+                <div id="hotkeyDisplay" class="hotkey-display" onclick="startHotkeyCapture()">
+                    点击此处设置快捷键...
+                </div>
+                <small style="color: var(--text-muted); margin-top: 4px; display: block;">
+                    建议使用 Ctrl+Shift+V 或 Ctrl+` 等组合键
+                </small>
+            </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="enableGlobalHotkey" onchange="toggleGlobalHotkey()">
+                    启用全局快捷键
+                </label>
+                <small style="color: var(--text-muted); margin-top: 4px; display: block;">
+                    启用后可在任何程序中使用快捷键调出剪贴板历史
+                </small>
+            </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="enableMinimizeToTray" onchange="toggleMinimizeToTray()">
+                    关闭时最小化到托盘
+                </label>
+                <small style="color: var(--text-muted); margin-top: 4px; display: block;">
+                    启用后点击关闭按钮将最小化到系统托盘而不是退出程序
+                </small>
+            </div>
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="saveHotkeyConfig()">保存设置</button>
+                <button class="btn" onclick="closeHotkeyModal()">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 右键菜单 -->
+<div id="contextMenu" class="context-menu">
+    <div class="context-menu-item" onclick="contextMenuAction('copy')">
+        📋 复制到剪贴板
+    </div>
+    <div class="context-menu-item" onclick="contextMenuAction('paste')">
+        📤 直接粘贴
+    </div>
+    <div class="context-menu-item danger" onclick="contextMenuAction('delete')">
+        🗑️ 删除记录
+    </div>
+</div>
+
 <script>
     // 全局变量
     let currentHistory = [];
     let lastCopiedIndex = -1;
+    let selectedIndex = -1; // 当前选中的项目索引
+    let isCapturingHotkey = false; // 是否正在捕获快捷键
+    let currentHotkey = ''; // 当前设置的快捷键
+    let contextMenuData = null; // 右键菜单数据
 
     // 更新状态
     function updateStatus(text) {
@@ -304,8 +575,13 @@
         currentHistory.forEach((entry, index) => {
             const item = document.createElement('div');
             item.className = 'history-item';
+            item.setAttribute('data-index', index);
+
             if (index === lastCopiedIndex) {
                 item.classList.add('copied-item');
+            }
+            if (index === selectedIndex) {
+                item.classList.add('selected-item');
             }
 
             const time = new Date(entry.Timestamp || entry.timestamp);
@@ -324,6 +600,15 @@
                     <div class="item-content">${escapeHtml(content)}</div>
                 `;
             item.ondblclick = () => copyToClipboard(entry.Content || entry.content, index);
+            item.onclick = () => selectItem(index);
+
+            // 添加右键菜单
+            item.oncontextmenu = (e) => {
+                e.preventDefault();
+                selectItem(index);
+                showContextMenu(e, entry.Content || entry.content, index);
+            };
+
             container.appendChild(item);
         });
     }
@@ -333,6 +618,201 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // 选择项目
+    function selectItem(index) {
+        if (index >= 0 && index < currentHistory.length) {
+            selectedIndex = index;
+            renderHistory();
+        }
+    }
+
+    // 取消选择
+    function clearSelection() {
+        selectedIndex = -1;
+        renderHistory();
+    }
+
+    // 显示右键菜单
+    function showContextMenu(event, content, index) {
+        const menu = document.getElementById('contextMenu');
+        contextMenuData = { content, index };
+
+        menu.style.display = 'block';
+        menu.style.left = event.pageX + 'px';
+        menu.style.top = event.pageY + 'px';
+
+        // 确保菜单不超出屏幕边界
+        const rect = menu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            menu.style.left = (event.pageX - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            menu.style.top = (event.pageY - rect.height) + 'px';
+        }
+    }
+
+    // 隐藏右键菜单
+    function hideContextMenu() {
+        const menu = document.getElementById('contextMenu');
+        menu.style.display = 'none';
+        contextMenuData = null;
+    }
+
+    // 右键菜单操作
+    async function contextMenuAction(action) {
+        if (!contextMenuData) return;
+
+        const { content, index } = contextMenuData;
+        hideContextMenu();
+
+        switch (action) {
+            case 'copy':
+                await copyToClipboard(content, index);
+                break;
+            case 'paste':
+                await pasteContent(content, index);
+                break;
+            case 'delete':
+                await deleteHistoryItem(index);
+                break;
+        }
+    }
+
+    // 删除历史记录项
+    async function deleteHistoryItem(index) {
+        try {
+            if (typeof deleteHistoryItemGo === 'function') {
+                const result = deleteHistoryItemGo(index);
+                let response = result;
+                if (result && typeof result.then === 'function') {
+                    response = await result;
+                }
+                if (response && response.error) {
+                    throw new Error(response.error);
+                }
+            }
+
+            // 更新本地数据
+            currentHistory.splice(index, 1);
+
+            // 调整选中索引
+            if (selectedIndex === index) {
+                selectedIndex = -1;
+            } else if (selectedIndex > index) {
+                selectedIndex--;
+            }
+
+            // 调整最后复制索引
+            if (lastCopiedIndex === index) {
+                lastCopiedIndex = -1;
+            } else if (lastCopiedIndex > index) {
+                lastCopiedIndex--;
+            }
+
+            renderHistory();
+            updateStatus('删除成功');
+        } catch (error) {
+            console.error('删除失败:', error);
+            updateStatus('删除失败');
+        }
+    }
+
+    // 键盘事件处理
+    function handleKeyPress(event) {
+        // 如果当前没有历史记录，忽略大部分快捷键
+        if (currentHistory.length === 0 && !['F5'].includes(event.key)) {
+            return;
+        }
+
+        switch (event.key) {
+            case 'ArrowUp':
+                event.preventDefault();
+                if (selectedIndex <= 0) {
+                    selectedIndex = currentHistory.length - 1;
+                } else {
+                    selectedIndex--;
+                }
+                renderHistory();
+                break;
+
+            case 'ArrowDown':
+                event.preventDefault();
+                if (selectedIndex >= currentHistory.length - 1) {
+                    selectedIndex = 0;
+                } else {
+                    selectedIndex++;
+                }
+                renderHistory();
+                break;
+
+            case 'Enter':
+                event.preventDefault();
+                if (selectedIndex >= 0 && selectedIndex < currentHistory.length) {
+                    const entry = currentHistory[selectedIndex];
+                    if (event.ctrlKey) {
+                        // Ctrl+Enter: 直接粘贴
+                        pasteContent(entry.Content || entry.content, selectedIndex);
+                    } else {
+                        // Enter: 复制到剪贴板
+                        copyToClipboard(entry.Content || entry.content, selectedIndex);
+                    }
+                }
+                break;
+
+            case 'Delete':
+            case 'Backspace':
+                event.preventDefault();
+                if (selectedIndex >= 0 && selectedIndex < currentHistory.length) {
+                    deleteHistoryItem(selectedIndex);
+                }
+                break;
+
+            case 'Escape':
+                event.preventDefault();
+                clearSelection();
+                break;
+
+            case 'F5':
+                event.preventDefault();
+                refreshHistory();
+                break;
+
+            default:
+                // 数字键1-9快速选择
+                if (event.key >= '1' && event.key <= '9') {
+                    event.preventDefault();
+                    const index = parseInt(event.key) - 1;
+                    if (index < currentHistory.length) {
+                        selectItem(index);
+                    }
+                }
+                // Ctrl+C 复制选中项
+                else if (event.ctrlKey && event.key === 'c') {
+                    event.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < currentHistory.length) {
+                        const entry = currentHistory[selectedIndex];
+                        copyToClipboard(entry.Content || entry.content, selectedIndex);
+                    }
+                }
+                // Ctrl+V 直接粘贴选中项
+                else if (event.ctrlKey && event.key === 'v') {
+                    event.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < currentHistory.length) {
+                        const entry = currentHistory[selectedIndex];
+                        pasteContent(entry.Content || entry.content, selectedIndex);
+                    }
+                }
+                // Ctrl+A 选择第一项
+                else if (event.ctrlKey && event.key === 'a') {
+                    event.preventDefault();
+                    if (currentHistory.length > 0) {
+                        selectItem(0);
+                    }
+                }
+                break;
+        }
     }
 
     // 刷新历史记录
@@ -351,6 +831,12 @@
             } else {
                 currentHistory = [];
             }
+
+            // 调整选中索引，确保不超出范围
+            if (selectedIndex >= currentHistory.length) {
+                selectedIndex = currentHistory.length > 0 ? currentHistory.length - 1 : -1;
+            }
+
             renderHistory();
             updateStatus('列表更新完成');
         } catch (error) {
@@ -385,6 +871,41 @@
         }
     }
 
+    // 直接粘贴到当前程序
+    async function pasteContent(content, index) {
+        try {
+            lastCopiedIndex = index;
+            if (typeof pasteContentGo === 'function') {
+                const result = pasteContentGo(content);
+                let response = result;
+                if (result && typeof result.then === 'function') {
+                    response = await result;
+                }
+                if (response && response.error) {
+                    throw new Error(response.error);
+                }
+                updateStatus('已粘贴到当前程序');
+                renderHistory();
+
+                // 可选：隐藏窗口以便用户看到粘贴结果
+                setTimeout(() => {
+                    if (typeof hideWindowGo === 'function') {
+                        hideWindowGo();
+                    }
+                }, 500);
+            } else {
+                // 降级到复制功能
+                await copyToClipboard(content, index);
+                updateStatus('已复制，请手动粘贴');
+            }
+        } catch (error) {
+            console.error('粘贴失败:', error);
+            updateStatus('粘贴失败，已复制到剪贴板');
+            // 降级到复制功能
+            await copyToClipboard(content, index);
+        }
+    }
+
     // 清空历史记录
     async function clearHistoryFunc() {
         if (confirm('确定要清空所有数据吗？')) {
@@ -397,12 +918,272 @@
                 }
                 currentHistory = [];
                 lastCopiedIndex = -1;
+                selectedIndex = -1;
                 renderHistory();
                 updateStatus('数据清空完成');
             } catch (error) {
                 console.error('清空失败:', error);
                 updateStatus('清空失败');
             }
+        }
+    }
+
+    // 显示快捷键配置
+    function showHotkeyConfig() {
+        const modal = document.getElementById('hotkeyModal');
+        modal.style.display = 'block';
+
+        // 加载当前设置
+        loadHotkeyConfig();
+    }
+
+    // 关闭快捷键配置模态框
+    function closeHotkeyModal() {
+        const modal = document.getElementById('hotkeyModal');
+        modal.style.display = 'none';
+        isCapturingHotkey = false;
+        updateHotkeyDisplay();
+    }
+
+    // 开始捕获快捷键
+    function startHotkeyCapture() {
+        isCapturingHotkey = true;
+        const display = document.getElementById('hotkeyDisplay');
+        display.textContent = '请按下快捷键组合...';
+        display.classList.add('hotkey-capture');
+
+        // 添加键盘监听
+        document.addEventListener('keydown', captureHotkey);
+    }
+
+    // 捕获快捷键
+    function captureHotkey(event) {
+        if (!isCapturingHotkey) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const keys = [];
+        if (event.ctrlKey) keys.push('Ctrl');
+        if (event.shiftKey) keys.push('Shift');
+        if (event.altKey) keys.push('Alt');
+        if (event.metaKey) keys.push('Meta');
+
+        // 添加主键
+        if (event.key && !['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+            keys.push(event.key.toUpperCase());
+        }
+
+        if (keys.length >= 2) { // 至少需要一个修饰键
+            currentHotkey = keys.join('+');
+            isCapturingHotkey = false;
+            updateHotkeyDisplay();
+            document.removeEventListener('keydown', captureHotkey);
+        }
+    }
+
+    // 更新快捷键显示
+    function updateHotkeyDisplay() {
+        const display = document.getElementById('hotkeyDisplay');
+        display.classList.remove('hotkey-capture');
+
+        if (currentHotkey) {
+            display.textContent = currentHotkey;
+        } else {
+            display.textContent = '点击此处设置快捷键...';
+        }
+    }
+
+    // 切换全局快捷键
+    async function toggleGlobalHotkey() {
+        const enabled = document.getElementById('enableGlobalHotkey').checked;
+        try {
+            if (typeof setGlobalHotkeyEnabled === 'function') {
+                const result = setGlobalHotkeyEnabled(enabled);
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+            }
+        } catch (error) {
+            console.error('切换全局快捷键失败:', error);
+        }
+    }
+
+    // 切换最小化到托盘
+    async function toggleMinimizeToTray() {
+        const enabled = document.getElementById('enableMinimizeToTray').checked;
+        try {
+            if (typeof setMinimizeToTrayEnabled === 'function') {
+                const result = setMinimizeToTrayEnabled(enabled);
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+            }
+            updateStatus(enabled ? '已启用最小化到托盘' : '已禁用最小化到托盘');
+        } catch (error) {
+            console.error('切换最小化到托盘失败:', error);
+        }
+    }
+
+    // 保存快捷键配置
+    async function saveHotkeyConfig() {
+        const enabled = document.getElementById('enableGlobalHotkey').checked;
+        const minimizeToTray = document.getElementById('enableMinimizeToTray').checked;
+
+        try {
+            if (typeof saveHotkeySettings === 'function') {
+                const result = saveHotkeySettings({
+                    hotkey: currentHotkey,
+                    enabled: enabled,
+                    minimizeToTray: minimizeToTray
+                });
+
+                // 处理可能的Promise
+                let response = result;
+                if (result && typeof result.then === 'function') {
+                    response = await result;
+                }
+
+                if (response && response.success) {
+                    updateStatus('快捷键设置已保存');
+                    closeHotkeyModal();
+                } else {
+                    alert('保存失败: ' + (response.error || '未知错误'));
+                }
+            } else {
+                // 保存到本地存储
+                localStorage.setItem('hotkeyConfig', JSON.stringify({
+                    hotkey: currentHotkey,
+                    enabled: enabled,
+                    minimizeToTray: minimizeToTray
+                }));
+                updateStatus('快捷键设置已保存');
+                closeHotkeyModal();
+            }
+        } catch (error) {
+            console.error('保存快捷键配置失败:', error);
+            alert('保存失败: ' + error.message);
+        }
+    }
+
+    // 加载快捷键配置
+    async function loadHotkeyConfig() {
+        try {
+            if (typeof getHotkeySettings === 'function') {
+                const result = getHotkeySettings();
+
+                // 处理可能的Promise
+                let config = result;
+                if (result && typeof result.then === 'function') {
+                    config = await result;
+                }
+
+                if (config) {
+                    currentHotkey = config.hotkey || '';
+                    const checkbox = document.getElementById('enableGlobalHotkey');
+                    if (checkbox) {
+                        checkbox.checked = config.enabled || false;
+                    }
+                    const minimizeCheckbox = document.getElementById('enableMinimizeToTray');
+                    if (minimizeCheckbox) {
+                        minimizeCheckbox.checked = config.minimizeToTray || false;
+                    }
+                }
+            } else {
+                // 从本地存储加载
+                const saved = localStorage.getItem('hotkeyConfig');
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    currentHotkey = config.hotkey || '';
+                    const checkbox = document.getElementById('enableGlobalHotkey');
+                    if (checkbox) {
+                        checkbox.checked = config.enabled || false;
+                    }
+                    const minimizeCheckbox = document.getElementById('enableMinimizeToTray');
+                    if (minimizeCheckbox) {
+                        minimizeCheckbox.checked = config.minimizeToTray || false;
+                    }
+                }
+            }
+            updateHotkeyDisplay();
+        } catch (error) {
+            console.error('加载快捷键配置失败:', error);
+        }
+    }
+
+    // 窗口控制函数
+    async function hideWindow() {
+        try {
+            if (typeof hideWindowGo === 'function') {
+                const result = hideWindowGo();
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+                updateStatus('窗口已隐藏，使用快捷键可重新显示');
+            } else {
+                // 如果没有Go函数，尝试最小化
+                if (window.minimize) {
+                    window.minimize();
+                } else {
+                    updateStatus('隐藏功能不可用');
+                }
+            }
+        } catch (error) {
+            console.error('隐藏窗口失败:', error);
+            updateStatus('隐藏窗口失败');
+        }
+    }
+
+    async function minimizeToTray() {
+        try {
+            if (typeof minimizeWindow === 'function') {
+                const result = minimizeWindow();
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+                updateStatus('已最小化到托盘');
+            } else {
+                updateStatus('最小化功能不可用');
+            }
+        } catch (error) {
+            console.error('最小化失败:', error);
+            updateStatus('最小化失败');
+        }
+    }
+
+    async function showWindow() {
+        try {
+            if (typeof showWindowGo === 'function') {
+                const result = showWindowGo();
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+                updateStatus('窗口已显示');
+            }
+        } catch (error) {
+            console.error('显示窗口失败:', error);
+        }
+    }
+
+    async function toggleWindowVisibility() {
+        try {
+            if (typeof toggleWindow === 'function') {
+                const result = toggleWindow();
+                let response = result;
+                if (result && typeof result.then === 'function') {
+                    response = await result;
+                }
+
+                if (response && response.success) {
+                    const status = response.hidden ? '窗口已隐藏' : '窗口已显示';
+                    updateStatus(status);
+                }
+            } else {
+                updateStatus('切换显示功能不可用');
+            }
+        } catch (error) {
+            console.error('切换窗口显示失败:', error);
+            updateStatus('切换显示失败');
         }
     }
 
@@ -415,7 +1196,7 @@
             }
         } catch (error) {}
 
-        alert(`${version}\n\n功能:\n- 实时监控剪贴板\n- 保存历史记录\n- 双击复制内容\n\n作者: Fly\n技术: Go + WebView`);
+        alert(`${version}\n\n功能:\n- 实时监控剪贴板\n- 保存历史记录\n- 双击复制内容\n- 直接粘贴到当前程序\n- 全局快捷键支持\n- 自动去重\n- 窗口隐藏/显示\n- 右键菜单操作\n\n快捷键:\n- Enter: 复制\n- Ctrl+Enter: 直接粘贴\n- Ctrl+V: 直接粘贴\n\n作者: Fly\n技术: Go + WebView`);
     }
 
     // 初始化
@@ -423,6 +1204,33 @@
         updateStatus('监控中...');
         refreshHistory();
         setInterval(refreshHistory, 2000);
+
+        // 添加键盘事件监听器
+        document.addEventListener('keydown', handleKeyPress);
+
+        // 确保页面获得焦点以接收键盘事件
+        window.focus();
+
+        // 加载快捷键配置
+        loadHotkeyConfig();
+
+        // 模态框点击外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('hotkeyModal');
+            if (event.target === modal) {
+                closeHotkeyModal();
+            }
+
+            // 隐藏右键菜单
+            hideContextMenu();
+        };
+
+        // 按ESC键隐藏右键菜单
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideContextMenu();
+            }
+        });
     });
 </script>
 </body>

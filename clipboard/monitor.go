@@ -2,6 +2,7 @@ package clipboard
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -88,8 +89,22 @@ func (m *Monitor) Start(ctx context.Context) error {
 	}
 }
 
-// addToHistory 添加到历史记录
+// addToHistory 添加到历史记录（支持去重）
 func (m *Monitor) addToHistory(entry ClipboardEntry) {
+	// 查找是否已存在相同内容
+	for i, existingEntry := range m.history {
+		if existingEntry.Content == entry.Content {
+			// 找到重复内容，更新时间戳并移动到顶部
+			m.history[i].Timestamp = entry.Timestamp
+			// 将该项移动到列表顶部
+			updatedEntry := m.history[i]
+			m.history = append(m.history[:i], m.history[i+1:]...)
+			m.history = append([]ClipboardEntry{updatedEntry}, m.history...)
+			return
+		}
+	}
+
+	// 没有找到重复内容，添加新项
 	m.history = append([]ClipboardEntry{entry}, m.history...)
 	if len(m.history) > m.maxHistory {
 		m.history = m.history[:m.maxHistory]
@@ -117,4 +132,18 @@ func (m *Monitor) ClearHistory() {
 // CopyToClipboard 复制内容到剪贴板
 func (m *Monitor) CopyToClipboard(content string) error {
 	return clipboard.WriteAll(content)
+}
+
+// DeleteHistoryItem 删除指定索引的历史记录项
+func (m *Monitor) DeleteHistoryItem(index int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if index < 0 || index >= len(m.history) {
+		return fmt.Errorf("index out of range: %d", index)
+	}
+
+	// 删除指定索引的项目
+	m.history = append(m.history[:index], m.history[index+1:]...)
+	return nil
 }

@@ -2,12 +2,14 @@ package main
 
 import (
 	"clipboard-monitor/clipboard"
+	"clipboard-monitor/keyboard"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	webview "github.com/webview/webview_go"
 )
@@ -17,6 +19,7 @@ type ClipboardApp struct {
 	monitor *clipboard.Monitor
 	ctx     context.Context
 	cancel  context.CancelFunc
+	hidden  bool // 窗口是否隐藏
 }
 
 func NewClipboardApp() *ClipboardApp {
@@ -118,6 +121,119 @@ func (ca *ClipboardApp) bindFunctions() {
 	// 绑定获取版本信息函数
 	ca.w.Bind("getVersionInfo", func() interface{} {
 		return GetVersionInfo()
+	})
+
+	// 绑定删除单个历史记录项函数
+	ca.w.Bind("deleteHistoryItemGo", func(index int) interface{} {
+		err := ca.monitor.DeleteHistoryItem(index)
+		if err != nil {
+			return map[string]string{"error": err.Error()}
+		}
+		return map[string]bool{"success": true}
+	})
+
+	// 绑定快捷键设置函数
+	ca.w.Bind("saveHotkeySettings", func(config map[string]interface{}) interface{} {
+		log.Printf("收到快捷键配置保存请求: %+v", config)
+		// 这里可以保存快捷键配置到文件或注册表
+		// 暂时返回成功，实际实现可以根据需要添加
+		result := map[string]bool{"success": true}
+		log.Printf("返回保存结果: %+v", result)
+		return result
+	})
+
+	ca.w.Bind("getHotkeySettings", func() interface{} {
+		log.Printf("收到获取快捷键配置请求")
+		// 这里可以从文件或注册表读取快捷键配置
+		// 暂时返回默认配置
+		result := map[string]interface{}{
+			"hotkey":  "Ctrl+Shift+V",
+			"enabled": false,
+		}
+		log.Printf("返回快捷键配置: %+v", result)
+		return result
+	})
+
+	ca.w.Bind("setGlobalHotkeyEnabled", func(enabled bool) interface{} {
+		log.Printf("收到设置全局快捷键状态请求: %v", enabled)
+		// 这里可以启用或禁用全局快捷键监听
+		result := map[string]bool{"success": true}
+		log.Printf("返回设置结果: %+v", result)
+		return result
+	})
+
+	// 绑定窗口控制函数
+	ca.w.Bind("hideWindowGo", func() interface{} {
+		log.Printf("隐藏窗口")
+		ca.hidden = true
+		// 注意：WebView可能不支持直接隐藏，这里只是标记状态
+		return map[string]bool{"success": true}
+	})
+
+	ca.w.Bind("showWindowGo", func() interface{} {
+		log.Printf("显示窗口")
+		ca.hidden = false
+		return map[string]bool{"success": true}
+	})
+
+	ca.w.Bind("minimizeWindow", func() interface{} {
+		log.Printf("最小化窗口")
+		// WebView的最小化功能有限，这里只是记录
+		return map[string]bool{"success": true}
+	})
+
+	ca.w.Bind("toggleWindow", func() interface{} {
+		log.Printf("切换窗口显示状态，当前状态: %v", ca.hidden)
+		ca.hidden = !ca.hidden
+		if ca.hidden {
+			log.Printf("窗口已隐藏")
+		} else {
+			log.Printf("窗口已显示")
+		}
+		return map[string]interface{}{
+			"success": true,
+			"hidden":  ca.hidden,
+		}
+	})
+
+	ca.w.Bind("setMinimizeToTrayEnabled", func(enabled bool) interface{} {
+		log.Printf("设置最小化到托盘: %v", enabled)
+		// 这里可以设置托盘相关的配置
+		return map[string]bool{"success": true}
+	})
+
+	// 绑定直接粘贴功能
+	ca.w.Bind("pasteContentGo", func(content string) interface{} {
+		contentPreview := content
+		if len(content) > 50 {
+			contentPreview = content[:50] + "..."
+		}
+		log.Printf("执行直接粘贴: %s", contentPreview)
+
+		// 先复制到剪贴板
+		err := ca.monitor.CopyToClipboard(content)
+		if err != nil {
+			return map[string]string{"error": "复制到剪贴板失败: " + err.Error()}
+		}
+
+		// 等待一小段时间确保剪贴板更新
+		time.Sleep(50 * time.Millisecond)
+
+		// 模拟 Ctrl+V 按键
+		go func() {
+			// 稍微延迟以确保窗口切换完成
+			time.Sleep(100 * time.Millisecond)
+
+			// 发送 Ctrl+V 组合键
+			err := keyboard.SendCtrlV()
+			if err != nil {
+				log.Printf("发送Ctrl+V失败: %v", err)
+			} else {
+				log.Printf("已发送Ctrl+V组合键")
+			}
+		}()
+
+		return map[string]bool{"success": true}
 	})
 }
 

@@ -3,388 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌤️ 云端剪贴板监控</title>
+    <title>剪贴板监控</title>
     <style>
         :root {
-            --primary-color: #4fc3f7;
-            --primary-dark: #039be5;
-            --secondary-color: #81d4fa;
-            --accent-color: #4dd0e1;
-            --bg-primary: #e3f2fd;
-            --bg-secondary: #bbdefb;
+            --primary-color: #1890ff;
+            --border-color: #d9d9d9;
+            --bg-primary: #f5f5f5;
             --bg-card: #ffffff;
-            --text-primary: #0d47a1;
-            --text-secondary: #1565c0;
-            --text-muted: #546e7a;
-            --border-color: #90caf9;
-            --success-color: #66bb6a;
-            --danger-color: #ef5350;
-            --warning-color: #ffca28;
-            --glow-blue: rgba(33, 150, 243, 0.2);
-            --glow-light: rgba(255, 255, 255, 0.8);
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --success-color: #52c41a;
+            --danger-color: #ff4d4f;
+            --hover-bg: #f0f7ff;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', '微软雅黑', 'Hiragino Sans GB', sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
+            line-height: 1.6;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                    radial-gradient(circle at 20% 80%, var(--glow-blue) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%, var(--glow-blue) 0%, transparent 50%),
-                    radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-        }
+
         .container {
-            max-width: 1000px;
+            max-width: 800px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        .header {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(227, 242, 253, 0.95));
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-            box-shadow:
-                    0 8px 32px rgba(33, 150, 243, 0.2),
-                    0 0 0 1px rgba(25, 118, 210, 0.1),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.5);
-            position: relative;
+            background: var(--bg-card);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            text-align: center;
         }
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #4fc3f7, #29b6f6, #039be5, #4fc3f7);
-            background-size: 200% 100%;
-            animation: gradientShift 5s ease infinite;
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
         }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+
         .title {
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #039be5, #29b6f6, #4fc3f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow:
-                    0 0 10px rgba(33, 150, 243, 0.3),
-                    0 0 20px rgba(25, 118, 210, 0.2);
-            letter-spacing: 1px;
-            position: relative;
-            display: inline-block;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
         }
-        .title::after {
-            content: '☁️';
-            position: absolute;
-            right: -30px;
-            top: -5px;
-            font-size: 1.2rem;
-            animation: sparkle 2s ease-in-out infinite;
-        }
-        .title::before {
-            content: '🌤️';
-            position: absolute;
-            left: -30px;
-            top: -5px;
-            font-size: 1.2rem;
-            animation: sparkle 2.5s ease-in-out infinite reverse;
-        }
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
-        }
+
         .subtitle {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 8px;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.8;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
+
         .main-content {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(227, 242, 253, 0.95));
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-            box-shadow:
-                    0 8px 32px rgba(33, 150, 243, 0.15),
-                    0 0 0 1px rgba(25, 118, 210, 0.05),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.5);
-            position: relative;
+            padding: 20px;
         }
-        .main-content::after {
-            content: '';
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 100px;
-            height: 100px;
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZmlsbD0iIzQyQTFGQyIgZmlsbC1vcGFjaXR5PSIwLjEiIGQ9Ik04NS41IDQ1LjVjMC0xOS4zLTE1LjctMzUtMzUtMzVzLTM1IDE1LjctMzUgMzVDMy44IDU1LjcgMTIuMyA2NyAyNCA3My41YzQuNiAyLjMgOS41IDQuMSAxNC41IDUuM2MxLjYuNC44LTIuNi0uNy0zLjJjLTUuMS0xLjctOS44LTMuOS0xNC4xLTYuNmMtMTAuNy02LjQtMTcuNS0xNy43LTE3LjUtMzBjMC0xOS4zIDE1LjctMzUgMzUtMzVzLTM1IDE1LjctMzUgMzVDNDUuNSA3NC44IDU3LjUgODUgNzAuNSA4NS41YzEyLjUuNSAyMi43LTkuMSAyMi43LTIxLjYgMC0xMi41LTEwLjItMjIuMS0yMi43LTIxLjZ6Ii8+PC9zdmc+');
-            background-size: contain;
-            background-repeat: no-repeat;
-            opacity: 0.1;
-            z-index: -1;
+
+        .status {
+            padding: 12px 16px;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 0.875rem;
         }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .subtitle-small {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
         .history-container {
             height: 400px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 15px;
-            box-shadow:
-                    inset 0 2px 10px rgba(0, 0, 0, 0.05),
-                    0 0 10px rgba(33, 150, 243, 0.1);
+            border-radius: 4px;
+            background: var(--bg-card);
         }
+
         .history-item {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(227, 242, 253, 0.9));
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 15px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            transition: background 0.2s;
         }
-        .history-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.1), transparent);
-            transition: left 0.5s;
+
+        .history-item:last-child {
+            border-bottom: none;
         }
+
         .history-item:hover {
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%);
-            border-color: rgba(33, 150, 243, 0.5);
-            transform: translateY(-3px) scale(1.01);
-            box-shadow:
-                    0 8px 20px rgba(33, 150, 243, 0.15),
-                    0 0 0 1px rgba(33, 150, 243, 0.2);
+            background: var(--hover-bg);
         }
-        .history-item:hover::before {
-            left: 100%;
-        }
+
         .item-time {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-family: monospace;
-            display: flex;
-            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 8px;
         }
-        .item-time::before {
-            content: '🕒';
-            margin-right: 5px;
-        }
+
         .item-content {
             color: var(--text-primary);
-            line-height: 1.6;
-            margin-top: 10px;
-            padding-left: 20px;
-            position: relative;
+            font-size: 0.875rem;
+            word-break: break-all;
         }
-        .item-content::before {
-            content: '☁️';
-            position: absolute;
-            left: 0;
-            color: rgba(33, 150, 243, 0.7);
+
+        .copied-item {
+            border-left: 3px solid var(--success-color);
+            background: #f6ffed;
         }
-        .footer {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(227, 242, 253, 0.95));
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-            box-shadow:
-                    0 4px 15px rgba(33, 150, 243, 0.15),
-                    0 0 0 1px rgba(25, 118, 210, 0.05);
-        }
-        .btn {
-            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            margin: 0 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow:
-                    0 4px 15px rgba(33, 150, 243, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-        .btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow:
-                    0 8px 25px rgba(33, 150, 243, 0.4),
-                    0 0 0 1px rgba(33, 150, 243, 0.3);
-        }
-        .btn:hover::before {
-            left: 100%;
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #ef5350, #e53935);
-            box-shadow:
-                    0 4px 15px rgba(239, 83, 80, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-        .btn-danger:hover {
-            box-shadow:
-                    0 8px 25px rgba(239, 83, 80, 0.4),
-                    0 0 0 1px rgba(239, 83, 80, 0.2);
-        }
-        .status {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-            background: rgba(33, 150, 243, 0.1);
-            padding: 12px 16px;
-            border-radius: 10px;
-            border-left: 3px solid #4fc3f7;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        .status::before {
-            content: '💬';
-            font-size: 1.2rem;
-        }
+
         .empty-state {
             text-align: center;
+            padding: 60px 20px;
             color: var(--text-muted);
-            padding: 50px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            border: 1px dashed var(--border-color);
         }
-        .empty-state .emoji {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            opacity: 0.7;
-            animation: float 3s ease-in-out infinite;
+
+        .empty-state p {
+            margin: 8px 0;
+            font-size: 0.875rem;
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+
+        .footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-card);
+            text-align: center;
         }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+
+        .btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        .btn-danger {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #fff2f0;
+            border-color: #ff7875;
+        }
+
         .history-container::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
+
         .history-container::-webkit-scrollbar-track {
-            background: rgba(227, 242, 253, 0.5);
-            border-radius: 4px;
+            background: #f1f1f1;
         }
+
         .history-container::-webkit-scrollbar-thumb {
-            background: rgba(33, 150, 243, 0.3);
-            border-radius: 4px;
-            transition: background 0.3s;
+            background: #c1c1c1;
+            border-radius: 3px;
         }
+
         .history-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(33, 150, 243, 0.5);
+            background: #a1a1a1;
         }
+
         @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .header { text-align: center; }
-            .btn { margin: 5px; padding: 10px 20px; }
-            .title { font-size: 1.8rem; }
-        }
-        /* 动画效果类 */
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <header class="header">
-        <h1 class="title">🌤️ 云端剪贴板监控</h1>
-        <div class="subtitle">剪贴板守护系统 v2.0</div>
+        <h1 class="title">剪贴板监控</h1>
+        <div class="subtitle">实时监控剪贴板变化</div>
     </header>
 
     <main class="main-content">
-        <div class="status" id="status">🌤️ 系统状态: 待命中</div>
-        <h2 style="margin-bottom: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-            <span>📋 剪贴板历史记录</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">(最新优先)</span>
-        </h2>
-        <p style="color: var(--text-muted); margin-bottom: 20px; font-style: italic;">💡 双击条目复制到剪贴板</p>
+        <div class="status" id="status">系统状态: 待命中</div>
+
+        <div class="section-title">
+            <span>剪贴板历史记录</span>
+            <span class="subtitle-small">(最新优先)</span>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.875rem;">
+            双击条目复制到剪贴板
+        </p>
+
         <div class="history-container" id="historyContainer">
             <div class="empty-state">
-                <div class="emoji">🌤️</div>
                 <p>暂无数据</p>
-                <p style="font-size: 0.8rem; margin-top: 5px; opacity: 0.6;">复制一些内容开始使用</p>
+                <p>复制一些内容开始使用</p>
             </div>
         </div>
     </main>
 
     <footer class="footer">
-        <button class="btn btn-danger" onclick="clearHistoryFunc()">
-            <span>🗑️ 清空数据</span>
-        </button>
-        <button class="btn" onclick="refreshHistory()">
-            <span>🔄 刷新</span>
-        </button>
-        <button class="btn" onclick="showAbout()">
-            <span>ℹ️ 系统信息</span>
-        </button>
+        <div class="btn-group">
+            <button class="btn btn-danger" onclick="clearHistoryFunc()">
+                清空数据
+            </button>
+            <button class="btn" onclick="refreshHistory()">
+                刷新
+            </button>
+            <button class="btn" onclick="showAbout()">
+                关于
+            </button>
+        </div>
     </footer>
 </div>
 
@@ -396,47 +282,42 @@
     // 更新状态
     function updateStatus(text) {
         const statusEl = document.getElementById('status');
-        statusEl.textContent = '🌤️ 系统状态: ' + text;
-        statusEl.classList.add('pulse');
-        setTimeout(() => statusEl.classList.remove('pulse'), 1000);
+        statusEl.textContent = '系统状态: ' + text;
     }
 
     // 渲染历史记录
     function renderHistory() {
-        console.log('开始渲染历史记录, 数量:', currentHistory.length);
         const container = document.getElementById('historyContainer');
-        if (!container) {
-            console.error('找不到 historyContainer 元素');
-            return;
-        }
+        if (!container) return;
 
         if (currentHistory.length === 0) {
-            console.log('显示空状态');
             container.innerHTML = `
                     <div class="empty-state">
-                        <div class="emoji">🌤️</div>
                         <p>暂无数据</p>
-                        <p style="font-size: 0.8rem; margin-top: 5px; opacity: 0.6;">复制一些内容开始使用</p>
+                        <p>复制一些内容开始使用</p>
                     </div>
                 `;
             return;
         }
 
-        console.log('渲染', currentHistory.length, '条记录');
         container.innerHTML = '';
         currentHistory.forEach((entry, index) => {
-            console.log('渲染第', index, '条:', entry);
             const item = document.createElement('div');
-            item.className = 'history-item fade-in';
+            item.className = 'history-item';
             if (index === lastCopiedIndex) {
-                item.style.borderColor = 'var(--success-color)';
-                item.style.boxShadow = '0 0 10px rgba(102, 187, 106, 0.3)';
+                item.classList.add('copied-item');
             }
 
             const time = new Date(entry.Timestamp || entry.timestamp);
-            const timeStr = time.toLocaleTimeString('zh-CN', { hour12: false });
+            const timeStr = time.toLocaleTimeString('zh-CN', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
             let content = entry.Content || entry.content || '';
-            if (content.length > 200) content = content.substring(0, 200) + '...';
+            if (content.length > 300) content = content.substring(0, 300) + '...';
 
             item.innerHTML = `
                     <div class="item-time">${timeStr}</div>
@@ -445,7 +326,6 @@
             item.ondblclick = () => copyToClipboard(entry.Content || entry.content, index);
             container.appendChild(item);
         });
-        console.log('历史记录渲染完成');
     }
 
     // HTML 转义
@@ -460,26 +340,15 @@
         try {
             if (typeof getHistory === 'function') {
                 const result = getHistory();
-                console.log('getHistory 返回:', result, '类型:', typeof result);
-
-                // 检查是否是 Promise
                 if (result && typeof result.then === 'function') {
-                    console.log('检测到 Promise，等待结果...');
                     const data = await result;
-                    console.log('Promise 解析结果:', data, '类型:', typeof data);
                     currentHistory = Array.isArray(data) ? data : [];
                 } else if (Array.isArray(result)) {
                     currentHistory = result;
-                } else if (result === null || result === undefined) {
-                    currentHistory = [];
                 } else {
-                    console.log('尝试解析为数组...');
                     currentHistory = [];
                 }
-
-                console.log('获取到历史记录:', currentHistory.length, '条');
             } else {
-                console.log('getHistory 函数不可用');
                 currentHistory = [];
             }
             renderHistory();
@@ -498,21 +367,17 @@
             lastCopiedIndex = index;
             if (typeof copyToClipboardGo === 'function') {
                 const result = copyToClipboardGo(content);
-
-                // 处理可能的 Promise
                 let response = result;
                 if (result && typeof result.then === 'function') {
                     response = await result;
                 }
-
                 if (response && response.error) {
                     throw new Error(response.error);
                 }
             } else {
                 await navigator.clipboard.writeText(content);
             }
-            updateStatus('复制成功！');
-            // 高亮显示已复制项
+            updateStatus('复制成功');
             renderHistory();
         } catch (error) {
             console.error('复制失败:', error);
@@ -526,7 +391,6 @@
             try {
                 if (typeof clearHistory === 'function') {
                     const result = clearHistory();
-                    // 处理可能的 Promise
                     if (result && typeof result.then === 'function') {
                         await result;
                     }
@@ -543,35 +407,22 @@
     }
 
     // 显示关于信息
-    async function showAbout() {
-        let version = '🌤️ 云端剪贴板监控 v2.0';
+    function showAbout() {
+        let version = '剪贴板监控 v2.0';
         try {
             if (typeof getVersionInfo === 'function') {
                 version = getVersionInfo();
             }
         } catch (error) {}
 
-        alert(version + '\n\n🌟 功能:\n- 实时监控\n- 历史记录\n- 双击复制\n- 云端风格界面\n\n👨‍💻 作者: Fly\n🛠️ 技术: Go + WebView');
+        alert(`${version}\n\n功能:\n- 实时监控剪贴板\n- 保存历史记录\n- 双击复制内容\n\n作者: Fly\n技术: Go + WebView`);
     }
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('页面加载完成');
-        console.log('可用函数:', typeof getHistory, typeof copyToClipboardGo, typeof clearHistory, typeof getVersionInfo);
-
-        // 测试基本功能
-        try {
-            updateStatus('剪贴板监控中...');
-            console.log('状态更新成功');
-
-            refreshHistory();
-            console.log('首次刷新完成');
-
-            setInterval(refreshHistory, 2000);
-            console.log('定时器设置完成');
-        } catch (error) {
-            console.error('初始化错误:', error);
-        }
+        updateStatus('监控中...');
+        refreshHistory();
+        setInterval(refreshHistory, 2000);
     });
 </script>
 </body>

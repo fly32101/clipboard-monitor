@@ -31,11 +31,7 @@ jobs:
             goarch: arm64
             binary_suffix: ""
             asset_name: clipboard-monitor-macos-arm64
-          - os: ubuntu-22.04
-            goos: linux
-            goarch: amd64
-            binary_suffix: ""
-            asset_name: clipboard-monitor-linux-amd64
+
 
     steps:
     - name: Checkout code
@@ -46,34 +42,7 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Install Linux dependencies
-      if: matrix.os == 'ubuntu-22.04'
-      run: |
-        sudo apt-get update
 
-        # Ubuntu 22.04 使用 libwebkit2gtk-4.1-dev
-        echo "Installing dependencies for Ubuntu 22.04..."
-        sudo apt-get install -y \
-          build-essential \
-          pkg-config \
-          libgtk-3-dev \
-          libwebkit2gtk-4.1-dev \
-          libgl1-mesa-dev \
-          libxi-dev \
-          libxcursor-dev \
-          libxrandr-dev \
-          libxinerama-dev \
-          libxxf86vm-dev
-
-        # 验证关键依赖
-        echo "Verifying dependencies..."
-        pkg-config --exists gtk+-3.0 && echo "✓ GTK3: OK" || echo "✗ GTK3: Missing"
-        pkg-config --exists webkit2gtk-4.1 && echo "✓ WebKit2GTK-4.1: OK" || echo "✗ WebKit2GTK-4.1: Missing"
-
-        # 显示 pkg-config 路径
-        echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
-        echo "Available .pc files:"
-        find /usr/lib/pkgconfig /usr/share/pkgconfig -name "*webkit*" 2>/dev/null || echo "No webkit .pc files found"
 
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
@@ -137,21 +106,6 @@ jobs:
         if [ "${{ matrix.goos }}" = "windows" ]; then
           echo "Building Windows version with UTF-8 support..."
           go build -v -ldflags="-s -w -H windowsgui -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
-        elif [ "${{ matrix.goos }}" = "linux" ]; then
-          echo "Building Linux version..."
-          # 检查 WebKit 是否可用
-          if pkg-config --exists webkit2gtk-4.1 || pkg-config --exists webkit2gtk-4.0; then
-            echo "WebKit found, proceeding with build..."
-            go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
-          else
-            echo "WebKit not found, build may fail..."
-            echo "Attempting build anyway..."
-            go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} . || {
-              echo "Build failed due to missing WebKit dependencies"
-              echo "This is expected on some Ubuntu versions"
-              exit 1
-            }
-          fi
         else
           echo "Building macOS version..."
           go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
@@ -241,7 +195,6 @@ jobs:
           - **Windows**: clipboard-monitor-windows-amd64.zip
           - **macOS (Intel)**: clipboard-monitor-darwin-amd64.tar.gz
           - **macOS (Apple Silicon)**: clipboard-monitor-darwin-arm64.tar.gz
-          - **Linux**: clipboard-monitor-linux-amd64.tar.gz
 
           ### 功能特性
 
@@ -266,7 +219,6 @@ jobs:
 
           - Windows 10/11
           - macOS 10.14+
-          - Linux (X11 桌面环境)
 
           ### ⚠️ 重要提示
 
@@ -279,6 +231,5 @@ jobs:
           artifacts/clipboard-monitor-windows-amd64/clipboard-monitor-windows-amd64.zip
           artifacts/clipboard-monitor-darwin-amd64/clipboard-monitor-darwin-amd64.tar.gz
           artifacts/clipboard-monitor-darwin-arm64/clipboard-monitor-darwin-arm64.tar.gz
-          artifacts/clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64.tar.gz
 
 

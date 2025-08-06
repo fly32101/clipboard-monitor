@@ -80,7 +80,7 @@ jobs:
         go build -ldflags="-s -w" -o ${{ matrix.asset_name }} .
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.asset_name }}
         path: ${{ matrix.asset_name }}
@@ -94,50 +94,54 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
         body: |
-          ## 剪贴板监听器 ${{ github.ref }}
-          
+          ## 剪贴板监听器 ${{ github.ref_name }}
+
           ### 下载
-          
+
           选择适合你操作系统的版本：
-          
+
           - **Windows**: clipboard-monitor-windows-amd64.exe
           - **macOS (Intel)**: clipboard-monitor-macos-amd64
           - **macOS (Apple Silicon)**: clipboard-monitor-macos-arm64
           - **Linux**: clipboard-monitor-linux-amd64
-          
+
           ### 功能特性
-          
+
           - 🔍 实时监听剪贴板变化
           - 📋 保存历史记录（最近50条）
           - 🖱️ 双击复制历史内容
           - 🗑️ 清空历史记录
           - 🔄 手动刷新列表
           - 🌐 跨平台支持
-          
+
           ### 使用方法
-          
+
           1. 下载对应平台的可执行文件
           2. 直接运行即可开始监听剪贴板
           3. 双击历史记录条目可复制内容
-          
+
           ### 系统要求
-          
+
           - Windows 10/11
           - macOS 10.14+
           - Linux (X11 桌面环境)
         draft: false
         prerelease: false
+        files: |
+          clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
+          clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
+          clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
+          clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
 
     - name: Upload Windows Release Asset
       uses: actions/upload-release-asset@v1

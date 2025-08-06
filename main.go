@@ -30,8 +30,7 @@ func NewClipboardApp() *ClipboardApp {
 }
 
 func (ca *ClipboardApp) setupUI() error {
-	debug := false // 启用调试模式
-	log.Printf("WebView 调试模式: %v", debug)
+	debug := false
 
 	// 创建 WebView
 	w := webview.New(debug)
@@ -83,7 +82,6 @@ func (ca *ClipboardApp) loadHTMLFile() error {
 		return fmt.Errorf("failed to read HTML file: %v", err)
 	}
 
-	log.Printf("Successfully loaded HTML file from: %s", indexPath)
 	ca.w.SetHtml(string(htmlContent))
 
 	return nil
@@ -93,18 +91,12 @@ func (ca *ClipboardApp) bindFunctions() {
 	// 绑定获取历史记录函数
 	ca.w.Bind("getHistory", func() interface{} {
 		history := ca.monitor.GetHistory()
-		log.Printf("获取历史记录: %d 条", len(history))
-		for i, entry := range history {
-			log.Printf("  [%d] %s: %s", i, entry.Timestamp.Format("15:04:05"), entry.Content[:min(30, len(entry.Content))])
-		}
 
 		// 确保返回的是数组，即使为空
 		if history == nil {
-			log.Println("历史记录为 nil，返回空数组")
 			return []interface{}{}
 		}
 
-		log.Printf("返回历史记录数组，长度: %d", len(history))
 		return history
 	})
 
@@ -112,17 +104,14 @@ func (ca *ClipboardApp) bindFunctions() {
 	ca.w.Bind("copyToClipboardGo", func(content string) interface{} {
 		err := ca.monitor.CopyToClipboard(content)
 		if err != nil {
-			log.Printf("复制失败: %v", err)
 			return map[string]string{"error": err.Error()}
 		}
-		log.Printf("复制成功: %s", content[:min(50, len(content))])
 		return map[string]bool{"success": true}
 	})
 
 	// 绑定清空历史函数
 	ca.w.Bind("clearHistory", func() interface{} {
 		ca.monitor.ClearHistory()
-		log.Println("历史记录已清空")
 		return map[string]bool{"success": true}
 	})
 
@@ -140,11 +129,8 @@ func min(a, b int) int {
 }
 
 func (ca *ClipboardApp) startMonitoring() {
-	log.Println("开始启动剪贴板监控...")
-
 	// Set new content callback
 	ca.monitor.SetOnNewContent(func(entry clipboard.ClipboardEntry) {
-		log.Printf("检测到新剪贴板内容: %s", entry.Content[:min(50, len(entry.Content))])
 		// 通知前端更新
 		if ca.w != nil {
 			// 可以通过 JavaScript 更新状态
@@ -158,12 +144,9 @@ func (ca *ClipboardApp) startMonitoring() {
 
 	// Start monitoring in background
 	go func() {
-		log.Println("剪贴板监控协程已启动")
 		err := ca.monitor.Start(ca.ctx)
 		if err != nil && err != context.Canceled {
 			log.Printf("Monitor error: %v", err)
-		} else {
-			log.Println("剪贴板监控正常结束")
 		}
 	}()
 }

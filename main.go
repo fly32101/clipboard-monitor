@@ -2,6 +2,7 @@ package main
 
 import (
 	"clipboard-monitor/clipboard"
+	"clipboard-monitor/hotkey"
 	"clipboard-monitor/keyboard"
 	"context"
 	"fmt"
@@ -15,20 +16,23 @@ import (
 )
 
 type ClipboardApp struct {
-	w       webview.WebView
-	monitor *clipboard.Monitor
-	ctx     context.Context
-	cancel  context.CancelFunc
-	hidden  bool // 窗口是否隐藏
+	w            webview.WebView
+	monitor      *clipboard.Monitor
+	ctx          context.Context
+	cancel       context.CancelFunc
+	hidden       bool // 窗口是否隐藏
+	hotkeyMgr    *hotkey.HotkeyManager
+	globalHotkey bool // 全局热键是否启用
 }
 
 func NewClipboardApp() *ClipboardApp {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &ClipboardApp{
-		monitor: clipboard.NewMonitor(50), // Save last 50 records
-		ctx:     ctx,
-		cancel:  cancel,
+		monitor:   clipboard.NewMonitor(50), // Save last 50 records
+		ctx:       ctx,
+		cancel:    cancel,
+		hotkeyMgr: hotkey.NewHotkeyManager(),
 	}
 }
 
@@ -156,7 +160,33 @@ func (ca *ClipboardApp) bindFunctions() {
 
 	ca.w.Bind("setGlobalHotkeyEnabled", func(enabled bool) interface{} {
 		log.Printf("收到设置全局快捷键状态请求: %v", enabled)
-		// 这里可以启用或禁用全局快捷键监听
+
+		if enabled && !ca.globalHotkey {
+			// 启用全局热键
+			err := ca.hotkeyMgr.RegisterHotkey(func() {
+				log.Printf("全局热键被触发，显示快速选择界面")
+				// 显示快速选择界面
+				ca.w.Eval(`
+					if (typeof showQuickSelector === 'function') {
+						showQuickSelector();
+					}
+				`)
+			})
+			if err != nil {
+				log.Printf("注册全局热键失败: %v", err)
+				return map[string]string{"error": "注册全局热键失败: " + err.Error()}
+			}
+			ca.globalHotkey = true
+		} else if !enabled && ca.globalHotkey {
+			// 禁用全局热键
+			err := ca.hotkeyMgr.UnregisterHotkey()
+			if err != nil {
+				log.Printf("注销全局热键失败: %v", err)
+				return map[string]string{"error": "注销全局热键失败: " + err.Error()}
+			}
+			ca.globalHotkey = false
+		}
+
 		result := map[string]bool{"success": true}
 		log.Printf("返回设置结果: %+v", result)
 		return result
@@ -235,6 +265,37 @@ func (ca *ClipboardApp) bindFunctions() {
 
 		return map[string]bool{"success": true}
 	})
+
+	// 绑定快速粘贴功能（全局热键触发）
+	ca.w.Bind("quickPaste", func(index int) interface{} {
+		log.Printf("快速粘贴第 %d 项", index)
+
+		history := ca.monitor.GetHistory()
+		if index < 0 || index >= len(history) {
+			return map[string]string{"error": "索引超出范围"}
+		}
+
+		content := history[index].Content
+
+		// 复制到剪贴板
+		err := ca.monitor.CopyToClipboard(content)
+		if err != nil {
+			return map[string]string{"error": "复制失败: " + err.Error()}
+		}
+
+		// 发送Ctrl+V
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			err := keyboard.SendCtrlV()
+			if err != nil {
+				log.Printf("发送Ctrl+V失败: %v", err)
+			} else {
+				log.Printf("已快速粘贴内容")
+			}
+		}()
+
+		return map[string]bool{"success": true}
+	})
 }
 
 func min(a, b int) int {
@@ -282,6 +343,9 @@ func (ca *ClipboardApp) Run() error {
 
 	// 清理资源
 	ca.cancel()
+	if ca.globalHotkey {
+		ca.hotkeyMgr.UnregisterHotkey()
+	}
 	ca.w.Destroy()
 
 	return nil

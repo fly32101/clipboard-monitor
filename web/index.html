@@ -376,6 +376,91 @@
             background: #fff2f0;
         }
 
+        .quick-selector {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 2000;
+            min-width: 400px;
+            max-width: 600px;
+            max-height: 500px;
+            display: none;
+        }
+
+        .quick-selector-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .quick-selector-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .quick-selector-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .quick-selector-item:last-child {
+            border-bottom: none;
+        }
+
+        .quick-selector-item:hover,
+        .quick-selector-item.selected {
+            background: var(--hover-bg);
+        }
+
+        .quick-selector-item.selected {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .quick-selector-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .quick-selector-content {
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .quick-selector-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            background: #f9f9f9;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
         .history-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -541,6 +626,19 @@
     </div>
 </div>
 
+<!-- 快速选择界面 -->
+<div id="quickSelector" class="quick-selector">
+    <div class="quick-selector-header">
+        📋 选择要粘贴的内容
+    </div>
+    <div id="quickSelectorList" class="quick-selector-list">
+        <!-- 动态生成列表项 -->
+    </div>
+    <div class="quick-selector-footer">
+        使用数字键 1-9 或箭头键选择，Enter 确认粘贴，ESC 取消
+    </div>
+</div>
+
 <script>
     // 全局变量
     let currentHistory = [];
@@ -549,6 +647,8 @@
     let isCapturingHotkey = false; // 是否正在捕获快捷键
     let currentHotkey = ''; // 当前设置的快捷键
     let contextMenuData = null; // 右键菜单数据
+    let quickSelectorVisible = false; // 快速选择器是否可见
+    let quickSelectedIndex = 0; // 快速选择器中的选中索引
 
     // 更新状态
     function updateStatus(text) {
@@ -677,6 +777,139 @@
             case 'delete':
                 await deleteHistoryItem(index);
                 break;
+        }
+    }
+
+    // 显示快速选择器
+    function showQuickSelector() {
+        if (currentHistory.length === 0) {
+            updateStatus('没有历史记录可选择');
+            return;
+        }
+
+        quickSelectorVisible = true;
+        quickSelectedIndex = 0;
+
+        const selector = document.getElementById('quickSelector');
+        const list = document.getElementById('quickSelectorList');
+
+        // 生成列表项（最多显示9项）
+        list.innerHTML = '';
+        const maxItems = Math.min(currentHistory.length, 9);
+
+        for (let i = 0; i < maxItems; i++) {
+            const entry = currentHistory[i];
+            const item = document.createElement('div');
+            item.className = 'quick-selector-item';
+            if (i === quickSelectedIndex) {
+                item.classList.add('selected');
+            }
+
+            let content = entry.Content || entry.content || '';
+            if (content.length > 60) {
+                content = content.substring(0, 60) + '...';
+            }
+
+            item.innerHTML = `
+                <span class="quick-selector-number">${i + 1}</span>
+                <span class="quick-selector-content">${escapeHtml(content)}</span>
+            `;
+
+            item.onclick = () => quickPasteItem(i);
+            list.appendChild(item);
+        }
+
+        selector.style.display = 'block';
+
+        // 添加键盘监听
+        document.addEventListener('keydown', handleQuickSelectorKeys);
+    }
+
+    // 隐藏快速选择器
+    function hideQuickSelector() {
+        quickSelectorVisible = false;
+        const selector = document.getElementById('quickSelector');
+        selector.style.display = 'none';
+
+        // 移除键盘监听
+        document.removeEventListener('keydown', handleQuickSelectorKeys);
+    }
+
+    // 处理快速选择器的键盘事件
+    function handleQuickSelectorKeys(event) {
+        if (!quickSelectorVisible) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const maxItems = Math.min(currentHistory.length, 9);
+
+        switch (event.key) {
+            case 'Escape':
+                hideQuickSelector();
+                break;
+
+            case 'ArrowUp':
+                quickSelectedIndex = quickSelectedIndex > 0 ? quickSelectedIndex - 1 : maxItems - 1;
+                updateQuickSelectorSelection();
+                break;
+
+            case 'ArrowDown':
+                quickSelectedIndex = quickSelectedIndex < maxItems - 1 ? quickSelectedIndex + 1 : 0;
+                updateQuickSelectorSelection();
+                break;
+
+            case 'Enter':
+                quickPasteItem(quickSelectedIndex);
+                break;
+
+            default:
+                // 数字键1-9
+                if (event.key >= '1' && event.key <= '9') {
+                    const index = parseInt(event.key) - 1;
+                    if (index < maxItems) {
+                        quickPasteItem(index);
+                    }
+                }
+                break;
+        }
+    }
+
+    // 更新快速选择器的选中状态
+    function updateQuickSelectorSelection() {
+        const items = document.querySelectorAll('.quick-selector-item');
+        items.forEach((item, index) => {
+            if (index === quickSelectedIndex) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    // 快速粘贴选中项
+    async function quickPasteItem(index) {
+        hideQuickSelector();
+
+        try {
+            if (typeof quickPaste === 'function') {
+                const result = quickPaste(index);
+                let response = result;
+                if (result && typeof result.then === 'function') {
+                    response = await result;
+                }
+                if (response && response.error) {
+                    throw new Error(response.error);
+                }
+                updateStatus('已快速粘贴到当前程序');
+            } else {
+                // 降级到普通粘贴
+                const entry = currentHistory[index];
+                await pasteContent(entry.Content || entry.content, index);
+            }
+        } catch (error) {
+            console.error('快速粘贴失败:', error);
+            updateStatus('快速粘贴失败');
         }
     }
 
@@ -1219,6 +1452,11 @@
             const modal = document.getElementById('hotkeyModal');
             if (event.target === modal) {
                 closeHotkeyModal();
+            }
+
+            const quickSelector = document.getElementById('quickSelector');
+            if (event.target === quickSelector) {
+                hideQuickSelector();
             }
 
             // 隐藏右键菜单

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ クリップボード・モニター</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-dark: #357abd;
+            --secondary-color: #7b68ee;
+            --accent-color: #ff6b9d;
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-card: #252b3a;
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d6;
+            --text-muted: #8892b0;
+            --border-color: #3d4758;
+            --success-color: #00d4aa;
+            --danger-color: #ff4757;
+            --warning-color: #ffa502;
+            --anime-blue: #4a90e2;
+            --anime-purple: #7b68ee;
+            --anime-pink: #ff6b9d;
+            --anime-cyan: #00d4aa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', '微软雅黑', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #2a1b3d 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(74, 144, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(123, 104, 238, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 107, 157, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(145deg, var(--bg-card) 0%, rgba(37, 43, 58, 0.8) 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            box-shadow:
+                0 8px 32px rgba(74, 144, 226, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--anime-blue), var(--anime-purple), var(--anime-pink), var(--anime-cyan));
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--anime-blue), var(--anime-purple), var(--anime-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .title::after {
+            content: '✨';
+            position: absolute;
+            right: -30px;
+            top: -5px;
+            font-size: 1.2rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        .main-content {
+            background: linear-gradient(145deg, var(--bg-card) 0%, rgba(37, 43, 58, 0.9) 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow:
+                0 8px 32px rgba(123, 104, 238, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        .history-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            padding: 10px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .history-item {
+            background: linear-gradient(135deg, rgba(37, 43, 58, 0.6) 0%, rgba(26, 31, 46, 0.8) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .history-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        .history-item:hover {
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(123, 104, 238, 0.1) 100%);
+            border-color: var(--anime-blue);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow:
+                0 8px 25px rgba(74, 144, 226, 0.2),
+                0 0 0 1px rgba(74, 144, 226, 0.1);
+        }
+        .history-item:hover::before {
+            left: 100%;
+        }
+        .item-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        .item-content {
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+        .footer {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(255, 140, 66, 0.1);
+        }
+        .btn {
+            background: linear-gradient(135deg, var(--anime-blue), var(--anime-purple));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 25px;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 4px 15px rgba(74, 144, 226, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow:
+                0 8px 25px rgba(74, 144, 226, 0.4),
+                0 0 0 1px rgba(74, 144, 226, 0.2);
+        }
+        .btn:hover::before {
+            left: 100%;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #ff3742);
+            box-shadow:
+                0 4px 15px rgba(255, 71, 87, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .btn-danger:hover {
+            box-shadow:
+                0 8px 25px rgba(255, 71, 87, 0.4),
+                0 0 0 1px rgba(255, 71, 87, 0.2);
+        }
+        .status {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            background: rgba(255, 140, 66, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 50px;
+        }
+        .history-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .history-container::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        .history-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        .history-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header { text-align: center; }
+            .btn { margin: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">⚡ クリップボード・モニター ⚡</h1>
+            <div class="subtitle">Clipboard Guardian System v2.0</div>
+        </header>
+
+        <main class="main-content">
+            <div class="status" id="status">⚡ システム状態: スタンバイ</div>
+            <h2>📝 クリップボード・ヒストリー</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-style: italic;">💫 ダブルクリックでクリップボードにコピー</p>
+            <div class="history-container" id="historyContainer">
+                <div class="empty-state">
+                    <div style="font-size: 3rem; margin-bottom: 15px; opacity: 0.7;">🌟</div>
+                    <p>データなし</p>
+                    <p style="font-size: 0.8rem; margin-top: 5px; opacity: 0.6;">何かをコピーして開始しましょう</p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <button class="btn btn-danger" onclick="clearHistoryFunc()">💥 データ消去</button>
+            <button class="btn" onclick="refreshHistory()">🔄 リフレッシュ</button>
+            <button class="btn" onclick="showAbout()">⭐ システム情報</button>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentHistory = [];
+
+        // 更新状态
+        function updateStatus(text) {
+            document.getElementById('status').textContent = '⚡ システム状態: ' + text;
+        }
+
+        // 渲染历史记录
+        function renderHistory() {
+            console.log('开始渲染历史记录, 数量:', currentHistory.length);
+            const container = document.getElementById('historyContainer');
+            if (!container) {
+                console.error('找不到 historyContainer 元素');
+                return;
+            }
+
+            if (currentHistory.length === 0) {
+                console.log('显示空状态');
+                container.innerHTML = '<div class="empty-state"><div style="font-size: 3rem; margin-bottom: 15px; opacity: 0.7;">🌟</div><p>データなし</p><p style="font-size: 0.8rem; margin-top: 5px; opacity: 0.6;">何かをコピーして開始しましょう</p></div>';
+                return;
+            }
+
+            console.log('渲染', currentHistory.length, '条记录');
+            container.innerHTML = '';
+            currentHistory.forEach((entry, index) => {
+                console.log('渲染第', index, '条:', entry);
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                const time = new Date(entry.Timestamp || entry.timestamp);
+                const timeStr = time.toLocaleTimeString('zh-CN', { hour12: false });
+                let content = entry.Content || entry.content || '';
+                if (content.length > 200) content = content.substring(0, 200) + '...';
+
+                item.innerHTML = '<div class="item-time">' + timeStr + '</div><div class="item-content">' + escapeHtml(content) + '</div>';
+                item.ondblclick = () => copyToClipboard(entry.Content || entry.content, index);
+                container.appendChild(item);
+            });
+            console.log('历史记录渲染完成');
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 刷新历史记录
+        async function refreshHistory() {
+            try {
+                if (typeof getHistory === 'function') {
+                    const result = getHistory();
+                    console.log('getHistory 返回:', result, '类型:', typeof result);
+
+                    // 检查是否是 Promise
+                    if (result && typeof result.then === 'function') {
+                        console.log('检测到 Promise，等待结果...');
+                        const data = await result;
+                        console.log('Promise 解析结果:', data, '类型:', typeof data);
+                        currentHistory = Array.isArray(data) ? data : [];
+                    } else if (Array.isArray(result)) {
+                        currentHistory = result;
+                    } else if (result === null || result === undefined) {
+                        currentHistory = [];
+                    } else {
+                        console.log('尝试解析为数组...');
+                        currentHistory = [];
+                    }
+
+                    console.log('获取到历史记录:', currentHistory.length, '条');
+                } else {
+                    console.log('getHistory 函数不可用');
+                    currentHistory = [];
+                }
+                renderHistory();
+                updateStatus('リスト更新完了');
+            } catch (error) {
+                console.error('获取历史记录失败:', error);
+                updateStatus('获取历史记录失败');
+                currentHistory = [];
+                renderHistory();
+            }
+        }
+
+        // 复制到剪贴板
+        async function copyToClipboard(content, index) {
+            try {
+                if (typeof copyToClipboardGo === 'function') {
+                    const result = copyToClipboardGo(content);
+
+                    // 处理可能的 Promise
+                    let response = result;
+                    if (result && typeof result.then === 'function') {
+                        response = await result;
+                    }
+
+                    if (response && response.error) {
+                        throw new Error(response.error);
+                    }
+                } else {
+                    await navigator.clipboard.writeText(content);
+                }
+                updateStatus('コピー完了！');
+            } catch (error) {
+                console.error('复制失败:', error);
+                updateStatus('复制失败');
+            }
+        }
+
+        // 清空历史记录
+        async function clearHistoryFunc() {
+            if (confirm('本当にすべてのデータを消去しますか？')) {
+                try {
+                    if (typeof clearHistory === 'function') {
+                        const result = clearHistory();
+                        // 处理可能的 Promise
+                        if (result && typeof result.then === 'function') {
+                            await result;
+                        }
+                    }
+                    currentHistory = [];
+                    renderHistory();
+                    updateStatus('データ消去完了');
+                } catch (error) {
+                    console.error('清空失败:', error);
+                    updateStatus('清空失败');
+                }
+            }
+        }
+
+        // 显示关于信息
+        async function showAbout() {
+            let version = '⚡ クリップボード・モニター v2.0';
+            try {
+                if (typeof getVersionInfo === 'function') {
+                    version = getVersionInfo();
+                }
+            } catch (error) {}
+
+            alert(version + '\n\n🌟 機能:\n- リアルタイム監視\n- ヒストリー表示\n- ダブルクリックコピー\n- アニメスタイル UI\n\n👨‍💻 作者: Fly\n🛠️ 技術: Go + WebView');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+            console.log('可用函数:', typeof getHistory, typeof copyToClipboardGo, typeof clearHistory, typeof getVersionInfo);
+
+            // 测试基本功能
+            try {
+                updateStatus('クリップボード監視中...');
+                console.log('状态更新成功');
+
+                refreshHistory();
+                console.log('首次刷新完成');
+
+                setInterval(refreshHistory, 2000);
+                console.log('定时器设置完成');
+            } catch (error) {
+                console.error('初始化错误:', error);
+            }
+        });
+    </script>
+</body>
+</html>

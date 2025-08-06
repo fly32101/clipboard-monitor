@@ -71,16 +71,33 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
+    - name: Setup Go proxy and clean cache
+      run: |
+        go env -w GOPROXY=https://proxy.golang.org,direct
+        go env -w GOSUMDB=sum.golang.org
+        go clean -modcache
+
     - name: Download dependencies
-      run: go mod download
+      run: |
+        go mod tidy
+        go mod download
 
     - name: Build binary
       env:
         GOOS: ${{ matrix.goos }}
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 1
+      shell: bash
       run: |
-        go build -ldflags="-s -w" -o ${{ matrix.asset_name }} .
+        echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}"
+        BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+        echo "Build completed: ${{ matrix.asset_name }}"
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          dir ${{ matrix.asset_name }}
+        else
+          ls -la ${{ matrix.asset_name }}
+        fi
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

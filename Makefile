@@ -50,6 +50,17 @@ deps:
 	go mod download
 	go mod tidy
 
+# 修复依赖问题
+.PHONY: fix-deps
+fix-deps:
+	@echo "修复 Go 模块依赖问题..."
+	go env -w GOPROXY=https://goproxy.cn,direct
+	go env -w GOSUMDB=sum.golang.google.cn
+	go clean -modcache
+	rm -f go.sum
+	go mod tidy
+	@echo "依赖修复完成！"
+
 # 跨平台构建
 .PHONY: build-all
 build-all: build-windows build-macos build-linux
@@ -87,6 +98,7 @@ help:
 	@echo "  fmt          - 格式化代码"
 	@echo "  vet          - 代码检查"
 	@echo "  deps         - 下载和整理依赖"
+	@echo "  fix-deps     - 修复依赖问题"
 	@echo "  clean        - 清理构建文件"
 	@echo "  build-all    - 构建所有平台"
 	@echo "  build-windows- 构建 Windows 版本"

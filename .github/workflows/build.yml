@@ -32,8 +32,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
+    - name: Setup Go proxy and clean cache
+      run: |
+        go env -w GOPROXY=https://proxy.golang.org,direct
+        go env -w GOSUMDB=sum.golang.org
+        go clean -modcache
+
     - name: Download dependencies
-      run: go mod download
+      run: |
+        go mod tidy
+        go mod download
 
     - name: Run tests
       run: go test -v ./...
@@ -79,8 +87,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Download dependencies
-      run: go mod download
+    - name: Setup Go proxy and download dependencies
+      run: |
+        go env -w GOPROXY=https://proxy.golang.org,direct
+        go env -w GOSUMDB=sum.golang.org
+        go mod tidy
+        go mod download
 
     - name: Build
       env:

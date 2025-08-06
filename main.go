@@ -30,7 +30,7 @@ func NewClipboardApp() *ClipboardApp {
 	myApp := app.New()
 	myApp.SetIcon(nil)
 
-	window := myApp.NewWindow("剪贴板监听器")
+	window := myApp.NewWindow("Clipboard Monitor")
 	window.Resize(fyne.NewSize(600, 400))
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -38,23 +38,23 @@ func NewClipboardApp() *ClipboardApp {
 	return &ClipboardApp{
 		app:     myApp,
 		window:  window,
-		monitor: clipboard.NewMonitor(50), // 保存最近50条记录
+		monitor: clipboard.NewMonitor(50), // Save last 50 records
 		ctx:     ctx,
 		cancel:  cancel,
 	}
 }
 
 func (ca *ClipboardApp) setupUI() {
-	// 状态标签
-	ca.statusLabel = widget.NewLabel("状态: 准备就绪")
+	// Status label
+	ca.statusLabel = widget.NewLabel("Status: Ready")
 
-	// 历史记录列表
+	// History list
 	ca.historyList = widget.NewList(
 		func() int {
 			return len(ca.monitor.GetHistory())
 		},
 		func() fyne.CanvasObject {
-			// 创建一个简单的标签作为列表项
+			// Create a simple label as list item
 			label := widget.NewLabel("")
 			label.Wrapping = fyne.TextWrapWord
 			return label
@@ -68,23 +68,23 @@ func (ca *ClipboardApp) setupUI() {
 			entry := history[id]
 			label := obj.(*widget.Label)
 
-			// 格式化显示内容
+			// Format display content
 			content := entry.Content
 			if len(content) > 80 {
 				content = content[:80] + "..."
 			}
-			// 替换换行符为空格以便显示
+			// Replace newlines with spaces for better display
 			content = strings.ReplaceAll(content, "\n", " ")
 			content = strings.ReplaceAll(content, "\r", " ")
 
-			// 组合时间和内容
+			// Combine time and content
 			displayText := fmt.Sprintf("[%s] %s",
 				entry.Timestamp.Format("15:04:05"), content)
 			label.SetText(displayText)
 		},
 	)
 
-	// 双击复制功能
+	// Double-click to copy functionality
 	ca.historyList.OnSelected = func(id widget.ListItemID) {
 		history := ca.monitor.GetHistory()
 		if id < len(history) {
@@ -93,36 +93,36 @@ func (ca *ClipboardApp) setupUI() {
 			if err != nil {
 				dialog.ShowError(err, ca.window)
 			} else {
-				ca.statusLabel.SetText(fmt.Sprintf("已复制: %s",
+				ca.statusLabel.SetText(fmt.Sprintf("Copied: %s",
 					time.Now().Format("15:04:05")))
 			}
 		}
 	}
 
-	// 按钮
-	clearBtn := widget.NewButton("清空历史", func() {
-		dialog.ShowConfirm("确认", "确定要清空所有历史记录吗？",
+	// Buttons
+	clearBtn := widget.NewButton("Clear History", func() {
+		dialog.ShowConfirm("Confirmation", "Are you sure you want to clear all history records?",
 			func(confirmed bool) {
 				if confirmed {
 					ca.monitor.ClearHistory()
 					ca.historyList.Refresh()
-					ca.statusLabel.SetText("历史记录已清空")
+					ca.statusLabel.SetText("History cleared")
 				}
 			}, ca.window)
 	})
 
-	refreshBtn := widget.NewButton("刷新", func() {
+	refreshBtn := widget.NewButton("Refresh", func() {
 		ca.historyList.Refresh()
-		ca.statusLabel.SetText("列表已刷新")
+		ca.statusLabel.SetText("List refreshed")
 	})
 
-	aboutBtn := widget.NewButton("关于", func() {
-		dialog.ShowInformation("关于",
-			GetVersionInfo()+"\n\n功能:\n- 实时监听剪贴板变化\n- 显示历史记录\n- 双击条目可复制\n- 跨平台支持\n\n作者: AI Assistant\n构建版本: "+Version,
+	aboutBtn := widget.NewButton("About", func() {
+		dialog.ShowInformation("About",
+			GetVersionInfo()+"\n\nFeatures:\n- Real-time clipboard monitoring\n- Display history records\n- Double-click to copy\n- Cross-platform support\n\nAuthor: Fly \nBuild version: "+Version,
 			ca.window)
 	})
 
-	// 布局
+	// Layout
 	buttonContainer := container.NewHBox(
 		clearBtn,
 		refreshBtn,
@@ -132,7 +132,7 @@ func (ca *ClipboardApp) setupUI() {
 	content := container.NewVBox(
 		ca.statusLabel,
 		widget.NewSeparator(),
-		widget.NewLabel("剪贴板历史记录 (双击复制):"),
+		widget.NewLabel("Clipboard History (Double-click to copy):"),
 		ca.historyList,
 		widget.NewSeparator(),
 		buttonContainer,
@@ -142,19 +142,19 @@ func (ca *ClipboardApp) setupUI() {
 }
 
 func (ca *ClipboardApp) startMonitoring() {
-	// 设置新内容回调
+	// Set new content callback
 	ca.monitor.SetOnNewContent(func(entry clipboard.ClipboardEntry) {
-		// 在UI线程中更新界面
-		ca.statusLabel.SetText(fmt.Sprintf("检测到新内容: %s",
+		// Update UI in the UI thread
+		ca.statusLabel.SetText(fmt.Sprintf("New content detected: %s",
 			entry.Timestamp.Format("15:04:05")))
 		ca.historyList.Refresh()
 	})
 
-	// 在后台启动监听
+	// Start monitoring in background
 	go func() {
 		err := ca.monitor.Start(ca.ctx)
 		if err != nil && err != context.Canceled {
-			log.Printf("监听器错误: %v", err)
+			log.Printf("Monitor error: %v", err)
 		}
 	}()
 }
@@ -163,31 +163,31 @@ func (ca *ClipboardApp) Run() {
 	ca.setupUI()
 	ca.startMonitoring()
 
-	// 设置窗口关闭回调
+	// Set window close callback
 	ca.window.SetCloseIntercept(func() {
-		ca.cancel() // 停止监听
+		ca.cancel() // Stop monitoring
 		ca.app.Quit()
 	})
 
-	ca.statusLabel.SetText("状态: 正在监听剪贴板...")
+	ca.statusLabel.SetText("Status: Monitoring clipboard...")
 	ca.window.ShowAndRun()
 }
 
-// initConsole 初始化控制台编码
+// initConsole initializes console encoding
 func initConsole() {
 	if runtime.GOOS == "windows" {
-		// 设置环境变量
-		os.Setenv("LANG", "zh_CN.UTF-8")
-		os.Setenv("LC_ALL", "zh_CN.UTF-8")
+		// Set environment variables
+		os.Setenv("LANG", "en_US.UTF-8")
+		os.Setenv("LC_ALL", "en_US.UTF-8")
 		os.Setenv("PYTHONIOENCODING", "utf-8")
 	}
 
-	// 调用平台特定的初始化
+	// Call platform-specific initialization
 	initPlatformSpecific()
 }
 
 func main() {
-	// 初始化控制台编码
+	// Initialize console encoding
 	initConsole()
 
 	app := NewClipboardApp()

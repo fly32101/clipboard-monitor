@@ -5,6 +5,7 @@ go 1.21
 require (
 	fyne.io/fyne/v2 v2.4.5
 	github.com/atotto/clipboard v0.1.4
+	github.com/flopp/go-findfont v0.1.0
 )
 
 require (

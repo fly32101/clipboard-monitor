@@ -9,5 +9,5 @@ const (
 
 // GetVersionInfo 返回版本信息字符串
 func GetVersionInfo() string {
-	return "剪贴板监听器 v" + Version
+	return "Clipboard Monitor v" + Version
 }

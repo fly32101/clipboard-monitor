@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"github.com/flopp/go-findfont"
 	"log"
 	"os"
 	"runtime"
@@ -24,6 +25,17 @@ type ClipboardApp struct {
 	statusLabel *widget.Label
 	ctx         context.Context
 	cancel      context.CancelFunc
+}
+
+func init() {
+	//设置中文字体:解决中文乱码问题
+	fontPaths := findfont.List()
+	for _, path := range fontPaths {
+		if strings.Contains(path, "msyh.ttf") || strings.Contains(path, "simhei.ttf") || strings.Contains(path, "simsun.ttc") || strings.Contains(path, "simkai.ttf") {
+			os.Setenv("FYNE_FONT", path)
+			break
+		}
+	}
 }
 
 func NewClipboardApp() *ClipboardApp {

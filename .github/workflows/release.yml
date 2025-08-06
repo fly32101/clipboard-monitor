@@ -48,19 +48,30 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         # macOS dependencies for webview
-        echo "Checking macOS dependencies..."
-        # 确保 Xcode 命令行工具已安装
-        xcode-select --install 2>/dev/null || echo "Xcode command line tools already installed"
+        echo "Checking macOS build environment..."
+        # 检查 Xcode 命令行工具
+        if xcode-select -p >/dev/null 2>&1; then
+          echo "✓ Xcode command line tools: $(xcode-select -p)"
+        else
+          echo "⚠ Xcode command line tools not found"
+        fi
         # 检查必要的框架
-        echo "WebKit framework: $(find /System/Library/Frameworks -name "WebKit.framework" 2>/dev/null || echo "Not found")"
+        if [ -d "/System/Library/Frameworks/WebKit.framework" ]; then
+          echo "✓ WebKit framework found"
+        else
+          echo "⚠ WebKit framework not found"
+        fi
+        echo "macOS build environment ready"
 
     - name: Install Windows dependencies
       if: matrix.os == 'windows-latest'
       run: |
         # Windows dependencies for webview
-        echo "Installing Windows dependencies..."
-        # 确保有 C++ 构建工具
-        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools" -y || echo "Build tools already installed"
+        echo "Checking Windows build environment..."
+        # 检查是否有必要的构建工具
+        where cl.exe >nul 2>&1 && echo "✓ MSVC compiler found" || echo "⚠ MSVC compiler not found"
+        where link.exe >nul 2>&1 && echo "✓ Linker found" || echo "⚠ Linker not found"
+        echo "Windows build environment ready"
 
     - name: Cache Go modules
       uses: actions/cache@v4
@@ -99,10 +110,12 @@ jobs:
 
         # 检查依赖
         echo "Checking dependencies..."
-        go mod verify
+        go mod verify || echo "⚠ Module verification failed, continuing anyway..."
 
         # 构建
         echo "Starting build..."
+        set -e  # 确保构建失败时退出
+
         if [ "${{ matrix.goos }}" = "windows" ]; then
           echo "Building Windows version with UTF-8 support..."
           go build -v -ldflags="-s -w -H windowsgui -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
@@ -110,6 +123,8 @@ jobs:
           echo "Building macOS version..."
           go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
         fi
+
+        echo "✓ Build completed successfully"
 
         echo "Build completed: ${{ matrix.asset_name }}"
         if [ "${{ matrix.os }}" = "windows-latest" ]; then

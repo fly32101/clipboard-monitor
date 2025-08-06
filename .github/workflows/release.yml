@@ -1,0 +1,180 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            binary_suffix: .exe
+            asset_name: clipboard-monitor-windows-amd64.exe
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            binary_suffix: ""
+            asset_name: clipboard-monitor-macos-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            binary_suffix: ""
+            asset_name: clipboard-monitor-macos-arm64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            binary_suffix: ""
+            asset_name: clipboard-monitor-linux-amd64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install Linux dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libxxf86vm-dev
+
+    - name: Install macOS dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        # macOS dependencies are usually available by default
+        echo "macOS dependencies check"
+
+    - name: Install Windows dependencies
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Windows dependencies
+        echo "Windows dependencies check"
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Build binary
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        CGO_ENABLED: 1
+      run: |
+        go build -ldflags="-s -w" -o ${{ matrix.asset_name }} .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ${{ matrix.asset_name }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## 剪贴板监听器 ${{ github.ref }}
+          
+          ### 下载
+          
+          选择适合你操作系统的版本：
+          
+          - **Windows**: clipboard-monitor-windows-amd64.exe
+          - **macOS (Intel)**: clipboard-monitor-macos-amd64
+          - **macOS (Apple Silicon)**: clipboard-monitor-macos-arm64
+          - **Linux**: clipboard-monitor-linux-amd64
+          
+          ### 功能特性
+          
+          - 🔍 实时监听剪贴板变化
+          - 📋 保存历史记录（最近50条）
+          - 🖱️ 双击复制历史内容
+          - 🗑️ 清空历史记录
+          - 🔄 手动刷新列表
+          - 🌐 跨平台支持
+          
+          ### 使用方法
+          
+          1. 下载对应平台的可执行文件
+          2. 直接运行即可开始监听剪贴板
+          3. 双击历史记录条目可复制内容
+          
+          ### 系统要求
+          
+          - Windows 10/11
+          - macOS 10.14+
+          - Linux (X11 桌面环境)
+        draft: false
+        prerelease: false
+
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
+        asset_name: clipboard-monitor-windows-amd64.exe
+        asset_content_type: application/octet-stream
+
+    - name: Upload macOS Intel Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
+        asset_name: clipboard-monitor-macos-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Upload macOS ARM Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
+        asset_name: clipboard-monitor-macos-arm64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
+        asset_name: clipboard-monitor-linux-amd64
+        asset_content_type: application/octet-stream

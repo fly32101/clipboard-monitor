@@ -91,7 +91,15 @@ jobs:
       run: |
         echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}"
         BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-        go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+
+        # Windows 特殊处理：添加 manifest 和 UTF-8 支持
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          echo "Building Windows version with UTF-8 support..."
+          go build -ldflags="-s -w -H windowsgui -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+        else
+          go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+        fi
+
         echo "Build completed: ${{ matrix.asset_name }}"
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
           dir ${{ matrix.asset_name }}

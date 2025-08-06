@@ -67,7 +67,7 @@ build-all: build-windows build-macos build-linux
 
 .PHONY: build-windows
 build-windows:
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="$(LDFLAGS)" -o $(APP_NAME)-windows-amd64.exe .
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="$(LDFLAGS) -H windowsgui" -o $(APP_NAME)-windows-amd64.exe .
 
 .PHONY: build-macos
 build-macos:

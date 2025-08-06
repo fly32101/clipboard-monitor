@@ -10,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"log"
+	"os"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -171,7 +173,23 @@ func (ca *ClipboardApp) Run() {
 	ca.window.ShowAndRun()
 }
 
+// initConsole 初始化控制台编码
+func initConsole() {
+	if runtime.GOOS == "windows" {
+		// 设置环境变量
+		os.Setenv("LANG", "zh_CN.UTF-8")
+		os.Setenv("LC_ALL", "zh_CN.UTF-8")
+		os.Setenv("PYTHONIOENCODING", "utf-8")
+	}
+
+	// 调用平台特定的初始化
+	initPlatformSpecific()
+}
+
 func main() {
+	// 初始化控制台编码
+	initConsole()
+
 	app := NewClipboardApp()
 	app.Run()
 }

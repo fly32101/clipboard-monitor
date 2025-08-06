@@ -107,11 +107,58 @@ jobs:
           ls -la ${{ matrix.asset_name }}
         fi
 
+    - name: Create release package
+      shell: bash
+      run: |
+        # 创建发布目录
+        mkdir -p release-package
+
+        # 复制可执行文件
+        cp ${{ matrix.asset_name }} release-package/
+
+        # 复制 web 文件夹
+        cp -r web release-package/
+
+        # 创建 README
+        cat > release-package/README.md << 'EOF'
+        # 剪贴板监控器
+
+        ## 使用方法
+
+        1. 确保 `web/` 文件夹与可执行文件在同一目录
+        2. 运行可执行文件即可开始使用
+
+        ## 文件说明
+
+        - `${{ matrix.asset_name }}`: 主程序
+        - `web/`: 界面文件（必需）
+        - `README.md`: 说明文档
+
+        ## 注意事项
+
+        请不要删除或移动 `web/` 文件夹，程序运行需要其中的界面文件。
+        EOF
+
+        # 创建压缩包
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          # Windows 使用 zip
+          cd release-package
+          7z a -tzip ../clipboard-monitor-${{ matrix.goos }}-${{ matrix.goarch }}.zip .
+          cd ..
+        else
+          # Unix 系统使用 tar.gz
+          tar -czf clipboard-monitor-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz -C release-package .
+        fi
+
+        # 显示打包结果
+        ls -la clipboard-monitor-${{ matrix.goos }}-${{ matrix.goarch }}.*
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.asset_name }}
-        path: ${{ matrix.asset_name }}
+        name: clipboard-monitor-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: |
+          clipboard-monitor-${{ matrix.goos }}-${{ matrix.goarch }}.*
 
   release:
     name: Create Release
@@ -134,10 +181,10 @@ jobs:
 
           选择适合你操作系统的版本：
 
-          - **Windows**: clipboard-monitor-windows-amd64.exe
-          - **macOS (Intel)**: clipboard-monitor-macos-amd64
-          - **macOS (Apple Silicon)**: clipboard-monitor-macos-arm64
-          - **Linux**: clipboard-monitor-linux-amd64
+          - **Windows**: clipboard-monitor-windows-amd64.zip
+          - **macOS (Intel)**: clipboard-monitor-darwin-amd64.tar.gz
+          - **macOS (Apple Silicon)**: clipboard-monitor-darwin-arm64.tar.gz
+          - **Linux**: clipboard-monitor-linux-amd64.tar.gz
 
           ### 功能特性
 
@@ -147,24 +194,34 @@ jobs:
           - 🗑️ 清空历史记录
           - 🔄 手动刷新列表
           - 🌐 跨平台支持
+          - 🎨 二次元风格界面
+          - ⚡ 现代化 Web UI
 
           ### 使用方法
 
-          1. 下载对应平台的可执行文件
-          2. 直接运行即可开始监听剪贴板
-          3. 双击历史记录条目可复制内容
+          1. 下载对应平台的压缩包
+          2. 解压到任意目录
+          3. 确保 `web/` 文件夹与可执行文件在同一目录
+          4. 运行可执行文件即可开始使用
+          5. 双击历史记录条目可复制内容
 
           ### 系统要求
 
           - Windows 10/11
           - macOS 10.14+
           - Linux (X11 桌面环境)
+
+          ### ⚠️ 重要提示
+
+          - 解压后请保持 `web/` 文件夹与可执行文件在同一目录
+          - 不要单独移动可执行文件，需要整个文件夹一起移动
+          - 首次运行可能需要允许防火墙访问
         draft: false
         prerelease: false
         files: |
-          artifacts/clipboard-monitor-windows-amd64.exe/clipboard-monitor-windows-amd64.exe
-          artifacts/clipboard-monitor-macos-amd64/clipboard-monitor-macos-amd64
-          artifacts/clipboard-monitor-macos-arm64/clipboard-monitor-macos-arm64
-          artifacts/clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64
+          artifacts/clipboard-monitor-windows-amd64/clipboard-monitor-windows-amd64.zip
+          artifacts/clipboard-monitor-darwin-amd64/clipboard-monitor-darwin-amd64.tar.gz
+          artifacts/clipboard-monitor-darwin-arm64/clipboard-monitor-darwin-arm64.tar.gz
+          artifacts/clipboard-monitor-linux-amd64/clipboard-monitor-linux-amd64.tar.gz
 
 

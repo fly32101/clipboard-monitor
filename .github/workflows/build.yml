@@ -106,4 +106,5 @@ jobs:
         path: |
           clipboard-monitor*
           awesomeProject2*
+          web/
         retention-days: 7

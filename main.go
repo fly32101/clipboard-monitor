@@ -176,10 +176,10 @@ func (ca *ClipboardApp) Run() {
 // initConsole initializes console encoding
 func initConsole() {
 	if runtime.GOOS == "windows" {
-		// Set environment variables
-		os.Setenv("LANG", "en_US.UTF-8")
-		os.Setenv("LC_ALL", "en_US.UTF-8")
-		os.Setenv("PYTHONIOENCODING", "utf-8")
+		// Set environment variables for GBK
+		os.Setenv("LANG", "zh_CN.GBK")
+		os.Setenv("LC_ALL", "zh_CN.GBK")
+		os.Setenv("LC_CTYPE", "zh_CN.GBK")
 	}
 
 	// Call platform-specific initialization

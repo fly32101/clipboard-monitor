@@ -5,7 +5,6 @@ package main
 
 import (
 	"syscall"
-	"unsafe"
 )
 
 var (

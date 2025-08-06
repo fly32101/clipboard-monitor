@@ -58,8 +58,34 @@ jobs:
           libxinerama-dev \
           libxxf86vm-dev \
           libgtk-3-dev \
-          libwebkit2gtk-4.0-dev \
           pkg-config
+
+        # 检查 Ubuntu 版本并安装对应的 WebKit 包
+        echo "Ubuntu version: $(lsb_release -rs)"
+
+        # 搜索可用的 WebKit 包
+        echo "Available WebKit packages:"
+        apt-cache search webkit2gtk | grep -E "(dev|devel)" || echo "No WebKit packages found"
+
+        # 尝试安装 WebKit 依赖，按优先级顺序
+        if sudo apt-get install -y libwebkit2gtk-4.1-dev; then
+          echo "Installed libwebkit2gtk-4.1-dev"
+        elif sudo apt-get install -y libwebkit2gtk-4.0-dev; then
+          echo "Installed libwebkit2gtk-4.0-dev"
+        elif sudo apt-get install -y webkit2gtk-4.0-dev; then
+          echo "Installed webkit2gtk-4.0-dev"
+        else
+          echo "Warning: Could not install any WebKit development package"
+          echo "Trying alternative approach..."
+          sudo apt-get install -y libjavascriptcoregtk-4.0-dev libsoup2.4-dev || echo "Alternative packages failed"
+        fi
+
+        # 验证安装
+        echo "Checking installed packages..."
+        pkg-config --exists gtk+-3.0 && echo "✓ GTK3: OK" || echo "✗ GTK3: Missing"
+        pkg-config --exists webkit2gtk-4.1 && echo "✓ WebKit2GTK-4.1: OK" || \
+        pkg-config --exists webkit2gtk-4.0 && echo "✓ WebKit2GTK-4.0: OK" || \
+        echo "✗ WebKit2GTK: Missing"
 
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
@@ -123,8 +149,23 @@ jobs:
         if [ "${{ matrix.goos }}" = "windows" ]; then
           echo "Building Windows version with UTF-8 support..."
           go build -v -ldflags="-s -w -H windowsgui -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+        elif [ "${{ matrix.goos }}" = "linux" ]; then
+          echo "Building Linux version..."
+          # 检查 WebKit 是否可用
+          if pkg-config --exists webkit2gtk-4.1 || pkg-config --exists webkit2gtk-4.0; then
+            echo "WebKit found, proceeding with build..."
+            go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
+          else
+            echo "WebKit not found, build may fail..."
+            echo "Attempting build anyway..."
+            go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} . || {
+              echo "Build failed due to missing WebKit dependencies"
+              echo "This is expected on some Ubuntu versions"
+              exit 1
+            }
+          fi
         else
-          echo "Building Unix version..."
+          echo "Building macOS version..."
           go build -v -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.BuildDate=${BUILD_DATE} -X main.GitCommit=${{ github.sha }}" -o ${{ matrix.asset_name }} .
         fi
 

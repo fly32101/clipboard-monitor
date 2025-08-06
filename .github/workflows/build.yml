@@ -30,8 +30,13 @@ jobs:
           libxinerama-dev \
           libxxf86vm-dev \
           libgtk-3-dev \
-          libwebkit2gtk-4.0-dev \
           pkg-config
+
+        # 尝试安装 WebKit 依赖，使用不同的包名
+        sudo apt-get install -y libwebkit2gtk-4.0-dev || \
+        sudo apt-get install -y libwebkit2gtk-4.1-dev || \
+        sudo apt-get install -y webkit2gtk-4.0-dev || \
+        echo "Warning: Could not install WebKit development package"
 
     - name: Cache Go modules
       uses: actions/cache@v4
@@ -94,8 +99,13 @@ jobs:
           libxinerama-dev \
           libxxf86vm-dev \
           libgtk-3-dev \
-          libwebkit2gtk-4.0-dev \
           pkg-config
+
+        # 尝试安装 WebKit 依赖，使用不同的包名
+        sudo apt-get install -y libwebkit2gtk-4.0-dev || \
+        sudo apt-get install -y libwebkit2gtk-4.1-dev || \
+        sudo apt-get install -y webkit2gtk-4.0-dev || \
+        echo "Warning: Could not install WebKit development package"
 
     - name: Cache Go modules
       uses: actions/cache@v4
